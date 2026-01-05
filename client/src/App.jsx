@@ -5,6 +5,9 @@ import Register from './pages/Register'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 
+import Home from './pages/Home'
+import Details from './pages/Details'
+
 export default function App(){
   return (
     <div style={{padding:20}}>
@@ -17,11 +20,12 @@ export default function App(){
       </nav>
 
       <Routes>
-        <Route path="/" element={<div><h1>PortfolioHostfy</h1><p>Learn and host simple portfolios.</p></div>} />
+        <Route path="/" element={<Home />} />
         <Route path="/public" element={<Public />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/portfolio/:id" element={<Details />} />
       </Routes>
     </div>
   )
