@@ -1,50 +1,41 @@
-const express = require('express');
-const router = express.Router();
-const Portfolio = require('../models/Portfolio');
-const auth = require('../middleware/auth');
+const express = require('express')
+const router = express.Router()
+const auth = require('../middleware/auth')
+const Portfolio = require('../models/Portfolio')
 
 router.get('/', async (req, res) => {
-  const list = await Portfolio.find({ published: true }).populate('owner', 'name email');
-  res.json(list);
-});
+  const items = await Portfolio.find({ isPublic: true }).populate('owner', 'name')
+  res.json(items)
+})
 
-router.get('/me', auth, async (req, res) => {
-  const list = await Portfolio.find({ owner: req.user.id }).populate('owner', 'name email');
-  res.json(list);
-});
+router.get('/my', auth, async (req, res) => {
+  const items = await Portfolio.find({ owner: req.user.id })
+  res.json(items)
+})
 
 router.post('/', auth, async (req, res) => {
-  if (req.user.role === 'viewer') return res.status(403).json({ message: 'Not allowed' });
-  const { title, description, content, published } = req.body;
-  const p = await Portfolio.create({ title, description, content, published, owner: req.user.id });
-  res.json(p);
-});
-
-router.get('/:id', async (req, res) => {
-  const p = await Portfolio.findById(req.params.id).populate('owner', 'name email');
-  if (!p) return res.status(404).json({ message: 'Not found' });
-  if (!p.published) return res.status(403).json({ message: 'Not published' });
-  res.json(p);
-});
+  const { title, description, isPublic } = req.body
+  const item = await Portfolio.create({ title, description, isPublic, owner: req.user.id })
+  res.json(item)
+})
 
 router.put('/:id', auth, async (req, res) => {
-  const p = await Portfolio.findById(req.params.id);
-  if (!p) return res.status(404).json({ message: 'Not found' });
-  if (p.owner.toString() !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ message: 'Not allowed' });
-  p.title = req.body.title ?? p.title;
-  p.description = req.body.description ?? p.description;
-  p.content = req.body.content ?? p.content;
-  p.published = req.body.published ?? p.published;
-  await p.save();
-  res.json(p);
-});
+  const id = req.params.id
+  const item = await Portfolio.findById(id)
+  if (!item) return res.status(404).json({ message: 'Not found' })
+  if (String(item.owner) !== req.user.id) return res.status(403).json({ message: 'Forbidden' })
+  Object.assign(item, req.body)
+  await item.save()
+  res.json(item)
+})
 
 router.delete('/:id', auth, async (req, res) => {
-  const p = await Portfolio.findById(req.params.id);
-  if (!p) return res.status(404).json({ message: 'Not found' });
-  if (p.owner.toString() !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ message: 'Not allowed' });
-  await p.remove();
-  res.json({ message: 'Deleted' });
-});
+  const id = req.params.id
+  const item = await Portfolio.findById(id)
+  if (!item) return res.status(404).json({ message: 'Not found' })
+  if (String(item.owner) !== req.user.id) return res.status(403).json({ message: 'Forbidden' })
+  await item.remove()
+  res.json({ message: 'Deleted' })
+})
 
-module.exports = router;
+module.exports = router

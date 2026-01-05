@@ -1,9 +1,7 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
+const url = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/portfoliohostfy'
 
-const connectDB = async () => {
-  const uri = process.env.MONGO_URI;
-  if (!uri) throw new Error('MONGO_URI is required');
-  await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-};
-
-module.exports = connectDB;
+module.exports = function () {
+  mongoose.set('strictQuery', false)
+  return mongoose.connect(url).then(() => console.log('MongoDB connected')).catch(err => console.error('MongoDB error', err))
+}
