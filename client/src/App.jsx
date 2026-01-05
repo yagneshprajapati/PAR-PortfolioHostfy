@@ -1,32 +1,19 @@
-import { Link, Routes, Route } from 'react-router-dom'
-import './App.css'
-import Public from './pages/Public'
-import Register from './pages/Register'
-import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
+import React, { useEffect, useState } from 'react'
 
-import Home from './pages/Home'
-import Details from './pages/Details'
-
-export default function App(){
+export default function App() {
+  const [list, setList] = useState([])
+  useEffect(() => {
+    fetch('/api/portfolios')
+      .then(r => r.json())
+      .then(setList)
+      .catch(() => setList([]))
+  }, [])
   return (
-    <div style={{padding:20}}>
-      <nav style={{display:'flex',gap:12,marginBottom:20}}>
-        <Link to="/">Home</Link>
-        <Link to="/public">Public</Link>
-        <Link to="/register">Register</Link>
-        <Link to="/login">Login</Link>
-        <Link to="/dashboard">Dashboard</Link>
-      </nav>
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/public" element={<Public />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/portfolio/:id" element={<Details />} />
-      </Routes>
-    </div>
+    React.createElement('div', { style: { fontFamily: 'Arial, sans-serif', padding: 20 } },
+      React.createElement('h1', null, 'PortfolioHostfy'),
+      React.createElement('p', null, 'A minimal starter for a portfolio hosting platform.'),
+      React.createElement('h2', null, 'Recent portfolios'),
+      React.createElement('ul', null, list.map(item => React.createElement('li', { key: item._id }, item.title || 'Untitled')))
+    )
   )
 }
