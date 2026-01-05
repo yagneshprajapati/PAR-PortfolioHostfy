@@ -6,6 +6,8 @@ export default function App() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
 
   useEffect(() => {
     fetch('/api/portfolios')
@@ -13,6 +15,8 @@ export default function App() {
       .then(setList)
       .catch(() => setList([]))
   }, [])
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
 
   const register = async (e) => {
     e.preventDefault()
@@ -38,13 +42,37 @@ export default function App() {
     }
   }
 
+  const logout = () => {
+    localStorage.removeItem('token')
+    setView('list')
+  }
+
+  const createPortfolio = async (e) => {
+    e.preventDefault()
+    const token = localStorage.getItem('token')
+    if (!token) return setView('login')
+    const res = await fetch('/api/portfolios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ title, description })
+    })
+    if (res.ok) {
+      const item = await res.json()
+      setList(prev => [item, ...prev])
+      setTitle('')
+      setDescription('')
+      setView('list')
+    }
+  }
+
   return (
     React.createElement('div', { style: { fontFamily: 'Arial, sans-serif', padding: 20 } },
       React.createElement('h1', null, 'PortfolioHostfy'),
       React.createElement('p', null, 'A minimal starter for a portfolio hosting platform.'),
       React.createElement('div', null,
         React.createElement('button', { onClick: () => setView('list') }, 'Home'),
-        React.createElement('button', { onClick: () => setView('login'), style: { marginLeft: 8 } }, 'Login'),
+        token ? React.createElement('button', { onClick: () => setView('create'), style: { marginLeft: 8 } }, 'Create') : null,
+        token ? React.createElement('button', { onClick: logout, style: { marginLeft: 8 } }, 'Logout') : React.createElement('button', { onClick: () => setView('login'), style: { marginLeft: 8 } }, 'Login'),
         React.createElement('button', { onClick: () => setView('register'), style: { marginLeft: 8 } }, 'Register')
       ),
       view === 'list' && React.createElement(React.Fragment, null,
@@ -76,6 +104,18 @@ export default function App() {
           React.createElement('input', { type: 'password', value: password, onChange: e => setPassword(e.target.value) })
         ),
         React.createElement('button', { type: 'submit', style: { marginTop: 8 } }, 'Login')
+      )
+      ,
+      view === 'create' && React.createElement('form', { onSubmit: createPortfolio, style: { marginTop: 12 } },
+        React.createElement('div', null,
+          React.createElement('label', null, 'Title'),
+          React.createElement('input', { value: title, onChange: e => setTitle(e.target.value) })
+        ),
+        React.createElement('div', null,
+          React.createElement('label', null, 'Description'),
+          React.createElement('textarea', { value: description, onChange: e => setDescription(e.target.value) })
+        ),
+        React.createElement('button', { type: 'submit', style: { marginTop: 8 } }, 'Create')
       )
     )
   )

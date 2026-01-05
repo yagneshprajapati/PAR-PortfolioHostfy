@@ -1,5 +1,6 @@
 const express = require('express')
 const mongoose = require('mongoose')
+const auth = require('../middleware/auth')
 
 const router = express.Router()
 
@@ -12,13 +13,17 @@ const PortfolioSchema = new mongoose.Schema({
 const Portfolio = mongoose.model('Portfolio', PortfolioSchema)
 
 router.get('/', async (req, res) => {
-  const list = await Portfolio.find().limit(20)
+  const list = await Portfolio.find().limit(20).populate('owner', 'name email')
   res.json(list)
 })
 
-router.post('/', async (req, res) => {
-  const item = await Portfolio.create(req.body)
-  res.status(201).json(item)
+router.post('/', auth, async (req, res) => {
+  try {
+    const item = await Portfolio.create({ ...req.body, owner: req.user.id })
+    res.status(201).json(item)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
 module.exports = router
