@@ -12,6 +12,7 @@ app.use(express.json())
 
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/portfolios', require('./routes/portfolios'))
+app.use('/api/admin', require('./routes/admin'))
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log('Server running on', PORT))
